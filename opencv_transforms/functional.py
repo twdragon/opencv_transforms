@@ -1,7 +1,6 @@
-import torch
 import math
 import random
-# from PIL import Image, ImageOps, ImageEnhance, PILLOW_VERSION
+from PIL import Image, ImageOps, ImageEnhance, PILLOW_VERSION
 try:
     import accimage
 except ImportError:
@@ -31,50 +30,8 @@ def _is_pil_image(img):
     else:
         return isinstance(img, Image.Image)
 
-def _is_tensor_image(img):
-    return torch.is_tensor(img) and img.ndimension() == 3
-
 def _is_numpy_image(img):
     return isinstance(img, np.ndarray) and (img.ndim in {2, 3})
-
-def to_tensor(pic):
-    """Convert a ``PIL Image`` or ``numpy.ndarray`` to tensor.
-    See ``ToTensor`` for more details.
-    Args:
-        pic (PIL Image or numpy.ndarray): Image to be converted to tensor.
-    Returns:
-        Tensor: Converted image.
-    """
-    if not(_is_numpy_image(pic)):
-        raise TypeError('pic should be ndarray. Got {}'.format(type(pic)))
-
-    # handle numpy array
-    img = torch.from_numpy(pic.transpose((2, 0, 1)))
-    # backward compatibility
-    if isinstance(img, torch.ByteTensor) or img.dtype==torch.uint8:
-        return img.float().div(255)
-    else:
-        return img
-
-def normalize(tensor, mean, std):
-    """Normalize a tensor image with mean and standard deviation.
-    .. note::
-        This transform acts in-place, i.e., it mutates the input tensor.
-    See :class:`~torchvision.transforms.Normalize` for more details.
-    Args:
-        tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
-        mean (sequence): Sequence of means for each channel.
-        std (sequence): Sequence of standard deviations for each channely.
-    Returns:
-        Tensor: Normalized Tensor image.
-    """
-    if not _is_tensor_image(tensor):
-        raise TypeError('tensor is not a torch image.')
-
-    # This is faster than using broadcasting, don't change without benchmarking
-    for t, m, s in zip(tensor, mean, std):
-        t.sub_(m).div_(s)
-    return tensor
 
 def resize(img, size, interpolation=cv2.INTER_LINEAR):
     r"""Resize the input numpy ndarray to the given size.

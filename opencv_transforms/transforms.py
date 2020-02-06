@@ -1,5 +1,5 @@
 from __future__ import division
-import torch
+#import torch
 import math
 import random
 # from PIL import Image, ImageOps, ImageEnhance
@@ -15,9 +15,9 @@ import warnings
 
 # import opencv_functional as F
 import cv2
-from . import functional as F
+import functional as F
 
-__all__ = ["Compose", "ToTensor", "ToPILImage", "Normalize", "Resize", "Scale", "CenterCrop", "Pad",
+__all__ = ["Compose", "ToPILImage", "Resize", "Scale", "CenterCrop", "Pad",
            "Lambda", "RandomApply", "RandomChoice", "RandomOrder", "RandomCrop", "RandomHorizontalFlip",
            "RandomVerticalFlip", "RandomResizedCrop", "RandomSizedCrop", "FiveCrop", "TenCrop", "LinearTransformation",
            "ColorJitter", "RandomRotation", "RandomAffine", "Grayscale", "RandomGrayscale"]
@@ -60,25 +60,6 @@ class Compose(object):
             format_string += '    {0}'.format(t)
         format_string += '\n)'
         return format_string
-
-
-class ToTensor(object):
-    """Convert a ``PIL Image`` or ``numpy.ndarray`` to tensor.
-    Converts a PIL Image or numpy.ndarray (H x W x C) in the range
-    [0, 255] to a torch.FloatTensor of shape (C x H x W) in the range [0.0, 1.0].
-    """
-
-    def __call__(self, pic):
-        """
-        Args:
-            pic (PIL Image or numpy.ndarray): Image to be converted to tensor.
-        Returns:
-            Tensor: Converted image.
-        """
-        return F.to_tensor(pic)
-
-    def __repr__(self):
-        return self.__class__.__name__ + '()'
 
 class Normalize(object):
     """Normalize a tensor image with mean and standard deviation.
@@ -607,46 +588,7 @@ class TenCrop(object):
         return self.__class__.__name__ + '(size={0}, vertical_flip={1})'.format(self.size, self.vertical_flip)
 
 
-class LinearTransformation(object):
-    """Transform a tensor image with a square transformation matrix computed
-    offline.
-    Given transformation_matrix, will flatten the torch.*Tensor, compute the dot
-    product with the transformation matrix and reshape the tensor to its
-    original shape.
-    Applications:
-        - whitening: zero-center the data, compute the data covariance matrix
-                 [D x D] with np.dot(X.T, X), perform SVD on this matrix and
-                 pass it as transformation_matrix.
-    Args:
-        transformation_matrix (Tensor): tensor [D x D], D = C x H x W
-    """
 
-    def __init__(self, transformation_matrix):
-        if transformation_matrix.size(0) != transformation_matrix.size(1):
-            raise ValueError("transformation_matrix should be square. Got " +
-                             "[{} x {}] rectangular matrix.".format(*transformation_matrix.size()))
-        self.transformation_matrix = transformation_matrix
-
-    def __call__(self, tensor):
-        """
-        Args:
-            tensor (Tensor): Tensor image of size (C, H, W) to be whitened.
-        Returns:
-            Tensor: Transformed image.
-        """
-        if tensor.size(0) * tensor.size(1) * tensor.size(2) != self.transformation_matrix.size(0):
-            raise ValueError("tensor and transformation matrix have incompatible shape." +
-                             "[{} x {} x {}] != ".format(*tensor.size()) +
-                             "{}".format(self.transformation_matrix.size(0)))
-        flat_tensor = tensor.view(1, -1)
-        transformed_tensor = torch.mm(flat_tensor, self.transformation_matrix)
-        tensor = transformed_tensor.view(tensor.size())
-        return tensor
-
-    def __repr__(self):
-        format_string = self.__class__.__name__ + '('
-        format_string += (str(self.transformation_matrix.numpy().tolist()) + ')')
-        return format_string
 
 
 class ColorJitter(object):
